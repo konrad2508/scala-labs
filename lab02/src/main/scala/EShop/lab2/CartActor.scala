@@ -1,7 +1,7 @@
 package EShop.lab2
 
 import EShop.lab2.CartActor._
-import akka.actor.{Actor, ActorRef, ActorSystem, Cancellable, Props}
+import akka.actor.{Actor, ActorRef, ActorSystem, Cancellable, Props, Timers}
 import akka.event.{Logging, LoggingReceive}
 
 import scala.concurrent.duration._
@@ -28,10 +28,11 @@ object CartActor {
 }
 
 class CartActor extends Actor {
-  private val log       = Logging(context.system, this)
-  val cartTimerDuration = 5 seconds
+  private val log                       = Logging(context.system, this)
+  val cartTimerDuration: FiniteDuration = 5 seconds
 
-  private def scheduleTimer: Cancellable = ???
+  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  private def scheduleTimer: Cancellable             = context.system.scheduler.scheduleOnce(cartTimerDuration, self, ExpireCart)
 
   def receive: Receive = empty
 
@@ -39,67 +40,55 @@ class CartActor extends Actor {
     case e: AddItem =>
       var cart = Cart.empty
       cart = cart addItem e.item
-      println("Adding " + e.item)
 
-      context become nonEmpty(cart, null)
+//      sender ! ItemAdded
 
-      sender ! ItemAdded
+      context become nonEmpty(cart, scheduleTimer)
   }
 
   def nonEmpty(cart: Cart, timer: Cancellable): Receive = LoggingReceive {
     case e: AddItem =>
       val newCart = cart addItem e.item
-      println("Adding " + e.item)
 
-      context become nonEmpty(newCart, null)
+//      sender ! ItemAdded
 
-      sender ! ItemAdded
+      context become nonEmpty(newCart, scheduleTimer)
 
-    case e: RemoveItem if cart.size == 1 =>
+    case e: RemoveItem if (cart contains e.item) && cart.size == 1 =>
       cart removeItem e.item
-      println("Removing " + e.item + " (last item)")
+
+//      sender ! ItemRemoved
 
       context become empty
 
-      sender ! ItemRemoved
-
-    case e: RemoveItem =>
+    case e: RemoveItem if cart contains e.item =>
       val newCart = cart removeItem e.item
-      println("Removing " + e.item)
 
-      context become nonEmpty(newCart, null)
+//      sender ! ItemRemoved
 
-      sender ! ItemRemoved
+      context become nonEmpty(newCart, scheduleTimer)
 
     case ExpireCart =>
-      println("Cart expired")
+//      sender ! CartExpired
 
       context become empty
 
-      sender ! CartExpired
-
     case StartCheckout =>
-      println("Checkout started")
+//      sender ! CheckoutStarted
 
       context become inCheckout(cart)
-
-      sender ! CheckoutStarted
   }
 
   def inCheckout(cart: Cart): Receive = LoggingReceive {
     case CancelCheckout =>
-      println("Checkout cancelled")
+//      sender ! CheckoutCancelled
 
-      context become nonEmpty(cart, null)
-
-      sender ! CheckoutCancelled
+      context become nonEmpty(cart, scheduleTimer)
 
     case CloseCheckout =>
-      println("Checkout closed")
+//      sender ! CheckoutClosed
 
       context become empty
-
-      sender ! CheckoutClosed
   }
 }
 
