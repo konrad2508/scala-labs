@@ -39,43 +39,75 @@ class Checkout extends Actor {
   private val scheduler = context.system.scheduler
   private val log       = Logging(context.system, this)
 
-  val checkoutTimerDuration = 1 seconds
-  val paymentTimerDuration  = 1 seconds
+  val checkoutTimerDuration: FiniteDuration = 1 seconds
+  val paymentTimerDuration: FiniteDuration  = 1 seconds
+
+  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  private def scheduleTimer(dur: FiniteDuration, msg: Command): Cancellable =
+    context.system.scheduler.scheduleOnce(dur, self, msg)
 
   def receive: Receive = LoggingReceive {
     case StartCheckout =>
-      println("Checkout started")
+      val timeout = scheduleTimer(checkoutTimerDuration, ExpireCheckout)
 
-      context become selectingDelivery(null)
+      context become selectingDelivery(timeout)
 
-      sender ! CheckoutStarted
+//      sender ! CheckoutStarted
   }
 
   def selectingDelivery(timer: Cancellable): Receive = LoggingReceive {
-    case e: SelectDeliveryMethod =>
-      println("Selected delivery: " + e.method)
+    case _: SelectDeliveryMethod =>
+      timer.cancel()
 
-      context become selectingPaymentMethod(null)
+      val timeout = scheduleTimer(checkoutTimerDuration, ExpireCheckout)
 
-      sender ! SelectedDelivery
+      context become selectingPaymentMethod(timeout)
+
+//      sender ! SelectedDelivery
+
+    case CancelCheckout =>
+      timer.cancel()
+
+      context become cancelled
+
+    case ExpireCheckout =>
+      context become cancelled
   }
 
   def selectingPaymentMethod(timer: Cancellable): Receive = LoggingReceive {
-    case e: SelectPayment =>
-      println("Selected payment: " + e.payment)
+    case _: SelectPayment =>
+      timer.cancel()
 
-      context become processingPayment(null)
+      val timeout = scheduleTimer(paymentTimerDuration, ExpirePayment)
 
-      sender ! SelectedPayment
+      context become processingPayment(timeout)
+
+//      sender ! SelectedPayment
+
+    case CancelCheckout =>
+      timer.cancel()
+
+      context become cancelled
+
+    case ExpireCheckout =>
+      context become cancelled
   }
 
   def processingPayment(timer: Cancellable): Receive = LoggingReceive {
     case ReceivePayment =>
-      println("Payment received")
+      timer.cancel()
 
       context become closed
 
-      sender ! ReceivedPayment
+//      sender ! ReceivedPayment
+
+    case CancelCheckout =>
+      timer.cancel()
+
+      context become cancelled
+
+    case ExpirePayment =>
+      context become cancelled
   }
 
   def cancelled: Receive = LoggingReceive {
@@ -85,5 +117,4 @@ class Checkout extends Actor {
   def closed: Receive = LoggingReceive {
     case _ =>
   }
-
 }
