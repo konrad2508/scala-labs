@@ -100,8 +100,3 @@ class CartActor extends Actor {
       context become empty
   }
 }
-
-object MainApp extends App {
-  val system = ActorSystem("TestoSystem")
-  val cart   = system.actorOf(Props[CartActor], name = "cart1")
-}
