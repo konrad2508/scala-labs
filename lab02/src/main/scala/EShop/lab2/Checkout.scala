@@ -51,8 +51,6 @@ class Checkout extends Actor {
       val timeout = scheduleTimer(checkoutTimerDuration, ExpireCheckout)
 
       context become selectingDelivery(timeout)
-
-//      sender ! CheckoutStarted
   }
 
   def selectingDelivery(timer: Cancellable): Receive = LoggingReceive {
@@ -62,8 +60,6 @@ class Checkout extends Actor {
       val timeout = scheduleTimer(checkoutTimerDuration, ExpireCheckout)
 
       context become selectingPaymentMethod(timeout)
-
-//      sender ! SelectedDelivery
 
     case CancelCheckout =>
       timer.cancel()
@@ -82,8 +78,6 @@ class Checkout extends Actor {
 
       context become processingPayment(timeout)
 
-//      sender ! SelectedPayment
-
     case CancelCheckout =>
       timer.cancel()
 
@@ -98,8 +92,6 @@ class Checkout extends Actor {
       timer.cancel()
 
       context become closed
-
-//      sender ! ReceivedPayment
 
     case CancelCheckout =>
       timer.cancel()
