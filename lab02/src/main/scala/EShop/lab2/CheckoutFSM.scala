@@ -1,6 +1,14 @@
 package EShop.lab2
 
-import EShop.lab2.Checkout.{CancelCheckout, Data, ReceivePayment, SelectDeliveryMethod, SelectPayment, StartCheckout, Uninitialized}
+import EShop.lab2.Checkout.{
+  CancelCheckout,
+  Data,
+  ReceivePayment,
+  SelectDeliveryMethod,
+  SelectPayment,
+  StartCheckout,
+  Uninitialized
+}
 import EShop.lab2.CheckoutFSM.Status
 import akka.actor.{ActorRef, LoggingFSM, Props}
 

@@ -39,8 +39,8 @@ class Checkout extends Actor {
   private val scheduler = context.system.scheduler
   private val log       = Logging(context.system, this)
 
-  val checkoutTimerDuration: FiniteDuration = 1 seconds
-  val paymentTimerDuration: FiniteDuration  = 1 seconds
+  val checkoutTimerDuration: FiniteDuration = 5 seconds
+  val paymentTimerDuration: FiniteDuration  = 5 seconds
 
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
   private def scheduleTimer(dur: FiniteDuration, msg: Command): Cancellable =
