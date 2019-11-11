@@ -19,9 +19,9 @@ object Application extends App {
     }
   }
 
-  val system   = ActorSystem("TestoSystem")
-  val cart     = system.actorOf(Props[CartActor], name = "cart1")
-  var checkout = ActorRef.noSender
+  val system    = ActorSystem("TestoSystem")
+  val cart      = system.actorOf(Props[CartActor], name = "cart1")
+  var checkout  = ActorRef.noSender
   var checkoutN = 1
 
   var state = 0

@@ -10,41 +10,40 @@ import akka.actor.Props
 import akka.actor.Actor
 import akka.actor.ActorRef
 
+class ToggleSpec
+  extends TestKit(ActorSystem("ToggleSpec"))
+  with WordSpecLike
+  with BeforeAndAfterAll
+  with ImplicitSender {
 
-class ToggleSpec extends TestKit(ActorSystem("ToggleSpec"))
-  with WordSpecLike with BeforeAndAfterAll with ImplicitSender {
-  
-  
-  override def afterAll(): Unit = {
+  override def afterAll(): Unit =
     system.terminate
-  }
 
   "A Toggle" must {
 
     "start in a happy mood" in {
       val toggle = system.actorOf(Props[Toggle])
-    
+
       toggle ! "How are you?"
       expectMsg("happy")
     }
-    
+
     "change its mood" in {
       val toggle = system.actorOf(Props[Toggle])
-      for (i <- 1 to 5){
+      for (i <- 1 to 5) {
         toggle ! "How are you?"
         expectMsg("happy")
         toggle ! "How are you?"
         expectMsg("sad")
       }
-    } 
-    
-    "finish when done" in{
+    }
+
+    "finish when done" in {
       val toggle = system.actorOf(Props[Toggle])
       toggle ! "Done"
       expectMsg("Done")
     }
- 
+
   }
 
 }
-

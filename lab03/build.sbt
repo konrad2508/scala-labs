@@ -1,13 +1,15 @@
-name := """reactive-lab3"""
+name := """lab3"""
 
-version := "1.1"
+version := "1.0"
 
-scalaVersion := "2.12.3"
+scalaVersion := "2.13.1"
+
+val akkaVersion = "2.6.0"
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.5.6",
-  "com.typesafe.akka" % "akka-testkit_2.12" % "2.5.6",
-  "org.scalatest" % "scalatest_2.12" % "3.0.4" % "test")
-  
+  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
+  "org.scalatest" %% "scalatest" % "3.0.8" % "test")
 
-EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource
+// scalaFmt
+scalafmtOnCompile := true
