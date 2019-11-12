@@ -1,10 +1,17 @@
-package EShop.lab2
+package EShop.ui
 
 import EShop.lab2.CartActor.{AddItem, CloseCheckout, RemoveItem, StartCheckout}
 import EShop.lab2.Checkout.{CancelCheckout, ReceivePayment, SelectDeliveryMethod, SelectPayment}
+import EShop.lab2.{CartActor, Checkout}
 import akka.actor.{ActorRef, ActorSystem, PoisonPill, Props}
 
 object Application extends App {
+  val system = ActorSystem("TestoSystem")
+  val cart = system.actorOf(Props[CartActor], name = "cart1")
+  var checkout = ActorRef.noSender
+  var checkoutN = 1
+  var state = 0
+
   def printHelp(state: Int): Unit = {
     state match {
       case 0 =>
@@ -18,13 +25,6 @@ object Application extends App {
         println("4. Cancel checkout")
     }
   }
-
-  val system    = ActorSystem("TestoSystem")
-  val cart      = system.actorOf(Props[CartActor], name = "cart1")
-  var checkout  = ActorRef.noSender
-  var checkoutN = 1
-
-  var state = 0
 
   while (true) {
     printHelp(state)
