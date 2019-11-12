@@ -6,6 +6,9 @@ object Payment {
   sealed trait Command
   case object Pay extends Command
 
+  sealed trait Event
+  case object PaymentFinished extends Event
+
   def props = Props(new Payment())
 }
 

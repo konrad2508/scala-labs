@@ -1,6 +1,7 @@
 package EShop.lab2
 
 import EShop.lab2.Checkout._
+import EShop.lab3.Payment
 import akka.actor.{Actor, ActorRef, Cancellable, Props}
 import akka.event.{Logging, LoggingReceive}
 
@@ -25,8 +26,8 @@ object Checkout {
 
   sealed trait Event
   case object CheckoutStarted                  extends Event
-  case object CheckOutClosed                   extends Event
-  case class PaymentStarted(payment: ActorRef) extends Event
+  case object CheckoutClosed                   extends Event
+  case class PaymentStarted(paymentRef: ActorRef) extends Event
   case object SelectedDelivery                 extends Event
   case object SelectedPayment                  extends Event
   case object ReceivedPayment                  extends Event
@@ -74,8 +75,10 @@ class Checkout extends Actor {
     case _: SelectPayment =>
       timer.cancel()
 
-      val timeout = scheduleTimer(paymentTimerDuration, ExpirePayment)
+      val paymentRef = context.system.actorOf(Payment.props)
+      sender ! PaymentStarted(paymentRef)
 
+      val timeout = scheduleTimer(paymentTimerDuration, ExpirePayment)
       context become processingPayment(timeout)
 
     case CancelCheckout =>

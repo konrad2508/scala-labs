@@ -18,7 +18,7 @@ object OrderManager {
 
 class OrderManager extends Actor {
   override def receive: Receive = {
-    val cartRef = context.system.actorOf(CartActor.props)
+    val cartRef = context.system.actorOf(CartActor.props(self))
     ordering(cartRef)
   }
 
@@ -26,14 +26,25 @@ class OrderManager extends Actor {
     case e: AddItem => cartRef ! CartActor.AddItem(e.item)
     case e: RemoveItem => cartRef ! CartActor.RemoveItem(e.item)
     case StartCheckout => cartRef ! CartActor.StartCheckout
+    case e: CartActor.CheckoutStarted => context become checkingOut(e.checkoutRef)
   }
 
   def checkingOut(checkoutRef: ActorRef): Receive = {
     case e: SelectDeliveryMethod => checkoutRef ! Checkout.SelectDeliveryMethod(e.method)
     case e: SelectPaymentMethod => checkoutRef ! Checkout.SelectPayment(e.method)
+    case e: Checkout.PaymentStarted => context become payment(e.paymentRef)
   }
 
   def payment(paymentRef: ActorRef): Receive = {
     case DoPayment => paymentRef ! Payment.Pay
+    case Payment.PaymentFinished => context become closeCheckout
+  }
+
+  def closeCheckout: Receive = {
+    case Checkout.CheckoutClosed => context become closeCart
+  }
+
+  def closeCart: Receive = {
+    case CartActor.CartEmpty => context become ordering(sender)
   }
 }

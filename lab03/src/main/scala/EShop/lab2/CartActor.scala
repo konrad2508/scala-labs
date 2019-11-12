@@ -23,11 +23,12 @@ object CartActor {
   case object ItemAdded                               extends Event
   case object ItemRemoved                             extends Event
   case object CartExpired                             extends Event
+  case object CartEmpty extends Event
 
-  def props = Props(new CartActor())
+  def props(orderManagerRef: ActorRef) = Props(new CartActor(orderManagerRef))
 }
 
-class CartActor extends Actor {
+class CartActor(orderManagerRef: ActorRef) extends Actor {
   private val log                       = Logging(context.system, this)
   val cartTimerDuration: FiniteDuration = 5 seconds
 
@@ -72,6 +73,10 @@ class CartActor extends Actor {
 
     case StartCheckout =>
       timer.cancel()
+
+      val checkoutRef = context.system.actorOf(Checkout.props(self))
+      orderManagerRef ! CheckoutStarted(checkoutRef)
+
       context become inCheckout(cart)
   }
 
@@ -80,6 +85,7 @@ class CartActor extends Actor {
       context become nonEmpty(cart, scheduleTimer)
 
     case CloseCheckout =>
+      orderManagerRef ! CartEmpty
       context become empty
   }
 }
