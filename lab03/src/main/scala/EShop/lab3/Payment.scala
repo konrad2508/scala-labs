@@ -1,6 +1,8 @@
 package EShop.lab3
 
-import akka.actor.{Actor, Props}
+import EShop.lab2.Checkout
+import EShop.lab3.Payment.PaymentFinished
+import akka.actor.{Actor, ActorRef, Props}
 
 object Payment {
   sealed trait Command
@@ -9,9 +11,21 @@ object Payment {
   sealed trait Event
   case object PaymentFinished extends Event
 
-  def props = Props(new Payment())
+  def props(orderManagerRef: ActorRef, checkoutRef: ActorRef) = Props(new Payment(orderManagerRef, checkoutRef))
 }
 
-class Payment extends Actor {
-  override def receive: Receive = ???
+class Payment(orderManagerRef: ActorRef, checkoutRef: ActorRef) extends Actor {
+  override def receive: Receive = awaitingPayment
+
+  def awaitingPayment: Receive = {
+    case OrderManager.DoPayment =>
+      orderManagerRef ! PaymentFinished
+      checkoutRef ! Checkout.ReceivePayment
+
+      context become closed
+  }
+
+  def closed: Receive = {
+    case _ =>
+  }
 }

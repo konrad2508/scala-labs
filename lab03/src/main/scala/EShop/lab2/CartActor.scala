@@ -74,7 +74,7 @@ class CartActor(orderManagerRef: ActorRef) extends Actor {
     case StartCheckout =>
       timer.cancel()
 
-      val checkoutRef = context.system.actorOf(Checkout.props(self))
+      val checkoutRef = context.system.actorOf(Checkout.props(self, orderManagerRef))
       orderManagerRef ! CheckoutStarted(checkoutRef)
 
       context become inCheckout(cart)
