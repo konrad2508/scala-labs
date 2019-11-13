@@ -1,7 +1,7 @@
 package EShop.lab2
 
-import EShop.lab2.Checkout.{CancelCheckout, ReceivePayment, SelectDeliveryMethod, SelectPayment, StartCheckout}
-import akka.actor.{ActorSystem, Cancellable, Props}
+import EShop.lab2.Checkout._
+import akka.actor.{ActorRef, ActorSystem, Cancellable, Props}
 import akka.testkit.{ImplicitSender, TestKit}
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike}
 
@@ -37,7 +37,7 @@ class CheckoutTest
   }
 
   it should "be in cancelled state after expire checkout timeout in selectingDelivery state" in {
-    val checkoutActor = system.actorOf(Props(new Checkout {
+    val checkoutActor = system.actorOf(Props(new Checkout(ActorRef.noSender, ActorRef.noSender) {
       override val checkoutTimerDuration: FiniteDuration = 1.seconds
 
       override def cancelled: Receive = {
@@ -72,7 +72,7 @@ class CheckoutTest
   }
 
   it should "be in cancelled state after expire checkout timeout in selectingPayment state" in {
-    val checkoutActor = system.actorOf(Props(new Checkout {
+    val checkoutActor = system.actorOf(Props(new Checkout(ActorRef.noSender, ActorRef.noSender) {
       override val checkoutTimerDuration: FiniteDuration = 1.seconds
 
       override def cancelled: Receive = {
@@ -112,7 +112,7 @@ class CheckoutTest
   }
 
   it should "be in cancelled state after expire checkout timeout in processingPayment state" in {
-    val checkoutActor = system.actorOf(Props(new Checkout {
+    val checkoutActor = system.actorOf(Props(new Checkout(ActorRef.noSender, ActorRef.noSender) {
       override val paymentTimerDuration: FiniteDuration = 1.seconds
 
       override def cancelled: Receive = {
@@ -168,7 +168,7 @@ object CheckoutTest {
   val closedMsg                 = "closed"
 
   def checkoutActorWithResponseOnStateChange(system: ActorSystem) =
-    system.actorOf(Props(new Checkout {
+    system.actorOf(Props(new Checkout(ActorRef.noSender, ActorRef.noSender) {
 
       override def receive() = {
         val result = super.receive

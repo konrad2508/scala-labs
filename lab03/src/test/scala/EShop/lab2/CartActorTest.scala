@@ -1,6 +1,6 @@
 package EShop.lab2
 
-import EShop.lab2.CartActor.{AddItem, CancelCheckout, CloseCheckout, RemoveItem, StartCheckout}
+import EShop.lab2.CartActor._
 import akka.actor.{ActorRef, ActorSystem, Cancellable, Props}
 import akka.testkit.{ImplicitSender, TestKit}
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike}
@@ -21,7 +21,7 @@ class CartActorTest
   it should "change state after adding first item to the cart" in {
     val nonEmptyTestMsg = "changedStateToNonEmpty"
 
-    val cart = system.actorOf(Props(new CartActor {
+    val cart = system.actorOf(Props(new CartActor(ActorRef.noSender) {
       override def nonEmpty(cart: Cart, timer: Cancellable): Receive = {
         sender ! nonEmptyTestMsg
         super.nonEmpty(cart, timer)
@@ -139,7 +139,7 @@ object CartActorTest {
   val inCheckoutMsg = "inCheckout"
 
   def cartActorWithCartSizeResponseOnStateChange(system: ActorSystem): ActorRef =
-    system.actorOf(Props(new CartActor {
+    system.actorOf(Props(new CartActor(ActorRef.noSender) {
       override val cartTimerDuration: FiniteDuration = 1.seconds
 
       override def empty() = {

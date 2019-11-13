@@ -72,10 +72,10 @@ class Checkout(cartRef: ActorRef, orderManagerRef: ActorRef) extends Actor {
   }
 
   def selectingPaymentMethod(timer: Cancellable): Receive = LoggingReceive {
-    case _: SelectPayment =>
+    case e: SelectPayment =>
       timer.cancel()
 
-      val paymentRef = context.system.actorOf(Payment.props(orderManagerRef, self))
+      val paymentRef = context.system.actorOf(Payment.props(e.payment, orderManagerRef, self))
       sender ! PaymentStarted(paymentRef)
 
       val timeout = scheduleTimer(paymentTimerDuration, ExpirePayment)
