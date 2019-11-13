@@ -37,7 +37,7 @@ class CartActor(orderManagerRef: ActorRef) extends Actor {
 
   def receive: Receive = empty
 
-  def empty: Receive = LoggingReceive {
+  def empty: Receive = LoggingReceive.withLabel("empty") {
     case e: AddItem =>
       var cart = Cart.empty
       cart = cart addItem e.item
@@ -45,7 +45,7 @@ class CartActor(orderManagerRef: ActorRef) extends Actor {
       context become nonEmpty(cart, scheduleTimer)
   }
 
-  def nonEmpty(cart: Cart, timer: Cancellable): Receive = LoggingReceive {
+  def nonEmpty(cart: Cart, timer: Cancellable): Receive = LoggingReceive.withLabel("nonEmpty") {
     case e: AddItem =>
       timer.cancel()
 
@@ -74,13 +74,14 @@ class CartActor(orderManagerRef: ActorRef) extends Actor {
     case StartCheckout =>
       timer.cancel()
 
-      val checkoutRef = context.system.actorOf(Checkout.props(self, orderManagerRef))
+      val checkoutRef = context.system.actorOf(Checkout.props(self, orderManagerRef), "checkout")
       orderManagerRef ! CheckoutStarted(checkoutRef)
+      checkoutRef ! Checkout.StartCheckout
 
       context become inCheckout(cart)
   }
 
-  def inCheckout(cart: Cart): Receive = LoggingReceive {
+  def inCheckout(cart: Cart): Receive = LoggingReceive.withLabel("inCheckout") {
     case CancelCheckout =>
       context become nonEmpty(cart, scheduleTimer)
 

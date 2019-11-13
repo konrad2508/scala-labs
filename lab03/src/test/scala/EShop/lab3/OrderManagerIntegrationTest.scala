@@ -1,13 +1,12 @@
 package EShop.lab3
 
 import EShop.lab3.OrderManager._
-import akka.Done
 import akka.actor.ActorSystem
 import akka.pattern.ask
-import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
+import akka.testkit._
 import akka.util.Timeout
+import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 
 import scala.concurrent.duration._
 
@@ -29,7 +28,7 @@ class OrderManagerIntegrationTest
                    ): Unit =
       (orderManager ? message).mapTo[OrderManager.Ack].futureValue shouldBe Done
 
-    val orderManager = TestActorRef(new OrderManager())
+    val orderManager = TestActorRef(new OrderManager(), "orderManager")
 
     sendMessage(orderManager, AddItem("rollerblades"))
 
