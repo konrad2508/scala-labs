@@ -15,6 +15,7 @@ object CartActor {
   case object StartCheckout        extends Command
   case object CancelCheckout       extends Command
   case object CloseCheckout        extends Command
+  case object GetItems  extends Command
 
   sealed trait Event
   case class CheckoutStarted(checkoutRef: ActorRef)   extends Event
@@ -25,10 +26,10 @@ object CartActor {
   case object CartExpired                             extends Event
   case object CartEmpty extends Event
 
-  def props(orderManagerRef: ActorRef) = Props(new CartActor(orderManagerRef))
+  def props = Props(new CartActor)
 }
 
-class CartActor(orderManagerRef: ActorRef) extends Actor {
+class CartActor extends Actor {
   private val log                       = Logging(context.system, this)
   val cartTimerDuration: FiniteDuration = 5 seconds
 
@@ -37,15 +38,17 @@ class CartActor(orderManagerRef: ActorRef) extends Actor {
 
   def receive: Receive = empty
 
-  def empty: Receive = LoggingReceive.withLabel("empty") {
+  def empty: Receive = LoggingReceive {
     case e: AddItem =>
       var cart = Cart.empty
       cart = cart addItem e.item
 
       context become nonEmpty(cart, scheduleTimer)
+
+    case GetItems => sender ! Seq.empty
   }
 
-  def nonEmpty(cart: Cart, timer: Cancellable): Receive = LoggingReceive.withLabel("nonEmpty") {
+  def nonEmpty(cart: Cart, timer: Cancellable): Receive = LoggingReceive {
     case e: AddItem =>
       timer.cancel()
 
@@ -74,19 +77,20 @@ class CartActor(orderManagerRef: ActorRef) extends Actor {
     case StartCheckout =>
       timer.cancel()
 
-      val checkoutRef = context.system.actorOf(Checkout.props(self, orderManagerRef), "checkout")
-      orderManagerRef ! CheckoutStarted(checkoutRef)
+      val checkoutRef = context.system.actorOf(Checkout.props(self, sender))
+      sender ! CheckoutStarted(checkoutRef)
       checkoutRef ! Checkout.StartCheckout
 
       context become inCheckout(cart)
+
+    case GetItems => sender ! cart.items
   }
 
-  def inCheckout(cart: Cart): Receive = LoggingReceive.withLabel("inCheckout") {
+  def inCheckout(cart: Cart): Receive = LoggingReceive {
     case CancelCheckout =>
       context become nonEmpty(cart, scheduleTimer)
 
     case CloseCheckout =>
-      orderManagerRef ! CartEmpty
       context become empty
   }
 }

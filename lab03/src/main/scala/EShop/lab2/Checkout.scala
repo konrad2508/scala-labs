@@ -47,14 +47,14 @@ class Checkout(cartRef: ActorRef, orderManagerRef: ActorRef) extends Actor {
   private def scheduleTimer(dur: FiniteDuration, msg: Command): Cancellable =
     context.system.scheduler.scheduleOnce(dur, self, msg)
 
-  def receive: Receive = LoggingReceive.withLabel("receive") {
+  def receive: Receive = LoggingReceive {
     case StartCheckout =>
       val timeout = scheduleTimer(checkoutTimerDuration, ExpireCheckout)
 
       context become selectingDelivery(timeout)
   }
 
-  def selectingDelivery(timer: Cancellable): Receive = LoggingReceive.withLabel("selectingDelivery") {
+  def selectingDelivery(timer: Cancellable): Receive = LoggingReceive {
     case _: SelectDeliveryMethod =>
       timer.cancel()
 
@@ -71,7 +71,7 @@ class Checkout(cartRef: ActorRef, orderManagerRef: ActorRef) extends Actor {
       context become cancelled
   }
 
-  def selectingPaymentMethod(timer: Cancellable): Receive = LoggingReceive.withLabel("selectingPaymentMethod") {
+  def selectingPaymentMethod(timer: Cancellable): Receive = LoggingReceive {
     case e: SelectPayment =>
       timer.cancel()
 
@@ -90,7 +90,7 @@ class Checkout(cartRef: ActorRef, orderManagerRef: ActorRef) extends Actor {
       context become cancelled
   }
 
-  def processingPayment(timer: Cancellable): Receive = LoggingReceive.withLabel("processingPayment") {
+  def processingPayment(timer: Cancellable): Receive = LoggingReceive {
     case ReceivePayment =>
       timer.cancel()
 
@@ -108,11 +108,11 @@ class Checkout(cartRef: ActorRef, orderManagerRef: ActorRef) extends Actor {
       context become cancelled
   }
 
-  def cancelled: Receive = LoggingReceive.withLabel("cancelled") {
+  def cancelled: Receive = LoggingReceive {
     case _ =>
   }
 
-  def closed: Receive = LoggingReceive.withLabel("closed") {
+  def closed: Receive = LoggingReceive {
     case _ =>
   }
 }

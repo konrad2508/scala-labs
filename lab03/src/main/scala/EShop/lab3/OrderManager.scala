@@ -36,7 +36,7 @@ object OrderManager {
 class OrderManager extends Actor {
 
   override def receive: Receive = {
-    val cartRef = context.system.actorOf(CartActor.props(self), "cart")
+    val cartRef = context.system.actorOf(CartActor.props)
     open(cartRef)
   }
 

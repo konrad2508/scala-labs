@@ -21,7 +21,7 @@ class CartActorTest
   it should "change state after adding first item to the cart" in {
     val nonEmptyTestMsg = "changedStateToNonEmpty"
 
-    val cart = system.actorOf(Props(new CartActor(ActorRef.noSender) {
+    val cart = system.actorOf(Props(new CartActor {
       override def nonEmpty(cart: Cart, timer: Cancellable): Receive = {
         sender ! nonEmptyTestMsg
         super.nonEmpty(cart, timer)
@@ -139,7 +139,7 @@ object CartActorTest {
   val inCheckoutMsg = "inCheckout"
 
   def cartActorWithCartSizeResponseOnStateChange(system: ActorSystem): ActorRef =
-    system.actorOf(Props(new CartActor(ActorRef.noSender) {
+    system.actorOf(Props(new CartActor {
       override val cartTimerDuration: FiniteDuration = 1.seconds
 
       override def empty() = {
