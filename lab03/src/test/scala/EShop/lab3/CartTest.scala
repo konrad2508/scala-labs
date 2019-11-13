@@ -25,12 +25,14 @@ class CartTest
 
     testActor ! CartActor.AddItem(testItems(0))
     testActor ! CartActor.GetItems
+
     expectMsg(testItems.slice(0, 1))
 
     testActor ! CartActor.AddItem(testItems(1))
     testActor ! CartActor.AddItem(testItems(2))
     testActor ! CartActor.AddItem(testItems(3))
     testActor ! CartActor.GetItems
+
     expectMsg(testItems)
   }
 
@@ -40,6 +42,7 @@ class CartTest
     testActor ! CartActor.AddItem(testItems(0))
     testActor ! CartActor.RemoveItem(testItems(0))
     testActor ! CartActor.GetItems
+
     expectMsg(Seq.empty)
   }
 
@@ -48,6 +51,7 @@ class CartTest
 
     testActor ! CartActor.AddItem(testItems(0))
     testActor ! CartActor.StartCheckout
+
     expectMsg(_: CartActor.CheckoutStarted)
   }
 }
