@@ -51,15 +51,15 @@ class OrderManager extends Actor {
   }
 
   def inCheckout(cartActorRef: ActorRef, senderRef: ActorRef): Receive = LoggingReceive {
-    case e: CartActor.CheckoutStarted => context become inCheckout(e.checkoutRef, senderRef)
+    case e: CartActor.CheckoutStarted => context become inCheckout(e.checkoutRef)
   }
 
-  def inCheckout(checkoutActorRef: ActorRef, senderRef: ActorRef): Receive = LoggingReceive {
+  def inCheckout(checkoutActorRef: ActorRef): Receive = LoggingReceive {
     case e: SelectDeliveryAndPaymentMethod =>
       checkoutActorRef ! Checkout.SelectDeliveryMethod(e.delivery)
       checkoutActorRef ! Checkout.SelectPayment(e.payment)
 
-      context become inPayment(senderRef)
+      context become inPayment(sender)
   }
 
   def inPayment(senderRef: ActorRef): Receive = LoggingReceive {
@@ -68,7 +68,7 @@ class OrderManager extends Actor {
   }
 
   def inPayment(paymentActorRef: ActorRef, senderRef: ActorRef): Receive = LoggingReceive {
-    case Pay                      => paymentActorRef ! Payment.Pay
+    case Pay                      => paymentActorRef ! Payment.DoPayment
     case Payment.PaymentConfirmed => context become finished
   }
 
