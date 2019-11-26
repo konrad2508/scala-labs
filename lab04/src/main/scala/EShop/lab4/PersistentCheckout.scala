@@ -30,8 +30,8 @@ class PersistentCheckout(
     ???
     event match {
       case CheckoutStarted                => ???
-      case DeliveryMethodSelected(method) => ???
-      case CheckOutClosed                 => ???
+      case SelectedDelivery(method) => ???
+      case CheckoutClosed                 => ???
       case CheckoutCancelled              => ???
       case PaymentStarted(payment)        => ???
 

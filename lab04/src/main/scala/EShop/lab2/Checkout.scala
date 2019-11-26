@@ -27,8 +27,9 @@ object Checkout {
   sealed trait Event
   case object CheckoutStarted                  extends Event
   case object CheckoutClosed                   extends Event
+  case object CheckoutCancelled                   extends Event
   case class PaymentStarted(paymentRef: ActorRef) extends Event
-  case object SelectedDelivery                 extends Event
+  case class SelectedDelivery(method: String)                 extends Event
   case object SelectedPayment                  extends Event
   case object ReceivedPayment                  extends Event
 
