@@ -18,13 +18,13 @@ object CartActor {
   case object GetItems  extends Command
 
   sealed trait Event
-  case class CheckoutStarted(checkoutRef: ActorRef)   extends Event
-  case class CheckoutCancelled(checkoutRef: ActorRef) extends Event
-  case class CheckoutClosed(checkoutRef: ActorRef)    extends Event
-  case object ItemAdded                               extends Event
-  case object ItemRemoved                             extends Event
+  case class CheckoutStarted(checkoutRef: ActorRef, cart: Cart)   extends Event
+  case class CheckoutCancelled(cart: Cart)            extends Event
+  case class ItemAdded(item: Any, cart: Cart)         extends Event
+  case class ItemRemoved(item: Any, cart: Cart)       extends Event
+  case object CheckoutClosed                          extends Event
   case object CartExpired                             extends Event
-  case object CartEmpty extends Event
+  case object CartEmptied                             extends Event
 
   def props = Props(new CartActor)
 }
