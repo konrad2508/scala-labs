@@ -4,14 +4,13 @@ import EShop.lab5.ProductCatalog.{GetItems, Items}
 import akka.actor.ActorSystem
 import akka.http.scaladsl.server.{HttpApp, Route}
 import akka.util.Timeout
-import akka.pattern.{ask, pipe}
+import akka.pattern.ask
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class ProductCatalogController(system: ActorSystem) extends HttpApp {
+class ProductCatalogController(system: ActorSystem) extends HttpApp with JsonSupport {
   private implicit val timeout: Timeout     = Timeout(5.seconds)
   override protected def routes: Route = {
     path("products") {
@@ -22,32 +21,35 @@ class ProductCatalogController(system: ActorSystem) extends HttpApp {
 
           val catalog = system.actorSelection("akka.tcp://ProductCatalog@127.0.0.1:2553/user/productcatalog")
 
-          complete {
-            (for {
-              actor <- catalog.resolveOne()
-              response <- actor ? query
-            } yield response).mapTo[Items]
-          }
+          val items = (for {
+            actor <- catalog.resolveOne()
+            response <- actor ? query
+          } yield response).mapTo[Items]
+
+          complete{ items }
         }
       }
     }
   }
 }
 
-object Main extends App {
-  private val config  = ConfigFactory.load()
-  val httpActorSystem = ActorSystem("server", config.getConfig("server").withFallback(config))
+object ProductCatalogController extends App {
+  val config  = ConfigFactory.load()
 
-  private val productCatalogSystem = ActorSystem(
+  val serverActorSystem = ActorSystem(
+    "ProductCatalogServer",
+    config.getConfig("productcatalogserver").withFallback(config)
+  )
+
+  val catalogCatalogSystem = ActorSystem(
     "ProductCatalog",
     config.getConfig("productcatalog").withFallback(config)
   )
 
-  productCatalogSystem.actorOf(
+  catalogCatalogSystem.actorOf(
     ProductCatalog.props(new SearchService()),
     "productcatalog"
   )
 
-  val server = new ProductCatalogController(httpActorSystem)
-  server.startServer("localhost", 8888, httpActorSystem)
+  new ProductCatalogController(serverActorSystem).startServer("localhost", 5000, serverActorSystem)
 }
